@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+
+    .has-image-centered {
+      /* margin-left: auto; */
+      /* margin-right: auto; */
+      bottom: -280px;
+      right: -1590px;
+      height: 300px;
+      width: 250px;
+    }
+    
+    .sly {
+    color: hsl(204, 86%, 53%);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.125;
+    }
+
+    text {
+    color: white;
+    }
+
+    .selected {
+    stroke: red !important;
+
+    }
+
+    text#tooltip {
+    font-family: sans-serif;
+    font-size: 12px;
+    text-shadow: 1px 1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, -1px -1px 0 #fff;
+    font-weight: 900;
+    }
+
+    text#toplabel {
+    font-family: sans-serif;
+    font-size: 12px;
+    text-shadow: 1px 1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, -1px -1px 0 #fff;
+    font-weight: 900;
+    }
+
+    .node circle {
+      stroke: silver;
+      stroke-width: 1.5px;
+    }
+
+    .node {
+      font: 10px sans-serif;
+      stroke-width: 1px;
+    }
+
+    .link {
+      fill: none;
+      stroke: silver;
+      stroke-width: 1.5px;
+    }
+
+    .tooltip {
+    position: absolute;
+    width: auto;
+    height: auto;
+    padding: 8px;
+    background: #ddd;
+    pointer-events: none;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    font-family: sans-serif;
+    font-size: 10pt;
+    color: black;
+    }
+
+
+    
+    
+</style>
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <!-- TODO: Change title -->
+    <title> Projection </title>
+
+    <!-- Load Bulma from CDN (consider saving it to repository instead) -->
+    <!-- https://bulma.io/ -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+
+    <!-- Load Font Awesome 5 (free) icons -->
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  </head>
+
+  <body>
+
+  <!-- Page header -->
+  <!-- https://bulma.io/documentation/layout/hero/ -->
+  <section class="hero is-black is-bold noprint">
+    <figure class=" image has-image-centered  ">
+      <img src="https://i.pinimg.com/originals/2c/62/83/2c6283ff77a739690f2f9c7ff0ba6a0e.png">
+    </figure>
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="sly">Homework 4</h1>
+        <h2 class="subtitle">SF Fire Department Calls for Service Hierarchy Visualization</h2>
+        
+      </div>
+    </div>
+  </section>
+  <!-- End page header -->
+
+  <!-- Page navigation -->
+  <!-- https://bulma.io/documentation/components/navbar/ -->
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="container">
+      <div class="navbar-brand">
+        <a class="navbar-item is-active" href="index.html">
+          <span class="icon"><i class="fas fa-home"></i></span>
+          <span>Home</span>
+        </a>
+
+        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="main-menu">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div id="main-menu" class="navbar-menu has-text-weight-medium">
+        <!-- Left navbar items -->
+        <div class="navbar-start">
+          <a class="navbar-item" href="index.html#data" title="Data">
+            <span class="icon"><i class="fas fa-table"></i></span>
+            <span>Data</span>
+          </a>
+
+          <a class="navbar-item" href="#">
+            <span class="icon"><i class="fas fa-chart-line"></i></span>
+            <span>Projection</span>
+          </a>
+
+          </div>
+        </div>
+
+        <!-- Right navbar items -->
+        <div class="navbar-end">
+          <a class="navbar-item" href="index.html#about" title="About">
+            <span class="icon"><i class="fas fa-tasks"></i></span>
+            <span>Grade</span>
+          </a>
+          <a class="navbar-item" href="index.html#about" title="About">
+            <span class="icon"><i class="fas fa-info-circle"></i></span>
+            <span>About</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- End page navigation -->
+
+  <section class="section">
+    <div class="container">
+      <!-- Begin page content -->
+      <div class="content">
+        <h1 class="title has-text-centered">
+          Hierarchy view of the number of cases for Fire Department Calls for Service in SF (December 2019) 
+        </h1>
+
+
+  <figure>
+    <div class="content has-text-centered"></div>
+      <h2>Circular Dendogram with Curved Edges</h2>
+
+    <svg id="nodelink"></svg>;
+  
+
+    <div class="content has-text-centered"></div>
+      <h2>Treemap</h2>
+
+    <svg id="tree"></svg>;
+
+  <div class="row align-items-center">
+    <div class="col-sm-2"><p id="value-range"></p></div>
+    <div class="col-sm"><div id="slider-range"></div></div>
+  </div>
+
+
+
+
+</figure>
+
+    <h3>Interactivity</h3>
+
+      <p> For interactivity, I added both a tool tip and brushing of the vizulatization. For the tool tip, you can select a dot/rectangle and the name of category and sum of total cases for that category will appear. 
+          For brushing, when you hover a dot/rectangle; the path for the dot/rectangle and its parents will be outlined in red and will brush out the rest of the dot/rectangle out to see the single path. </p>
+
+    <h3>Analysis</h3>
+
+      <p> For these hierarchy projection, I was attemping to observe the findings from the "Fire Department Calls for Service" dataset and focused on the month of December 2019.
+          The category that I focused one was City, Call Type Group, Call Type, Unit type to create the hierarchy. I wanted to display the number of cases for each Call Type group subdivided
+          by call type and unit type so we can see what type of call go under each call type group and what unit type mostly go for each different call type. This also allows us to compare and contrast the amount of cases
+          that each unit type have for each call type group and call type. For an example we can see that Non Life-Threatening had the most cases which was because of medical incidents call type and the unit type 
+          that took those cases was the medic unit. So we can see the layer of relationship for each unit type group in a more detailed level. 
+    </p>
+    
+
+<script>
+
+
+d3.csv("data.csv").then(create);
+
+function create(d){
+    // console.log(d);
+
+    let width = 960;
+    let height = 500;
+    let pad = 140;
+    let diameter = 700;
+
+    // setup svg width and height
+    let svg = d3.select("body").select("svg#nodelink")
+      .style("width", width)
+      .style("height", height);
+
+    let plot = svg.append("g")
+      .attr("id", "plot")
+      .attr("transform", translate(pad + 300, pad + 100)); 
+
+    let data = d3.nest()
+      .key(function(d) {
+        return d["City"];
+      })
+      .key(function(d) {
+        return d["Call Type Group"]
+      })
+      .key(function(d) {
+        return d["Call Type"]
+      })
+      .key(function(d) {
+        return d["Unit Type"]
+      })
+      .rollup(function(v) {
+        return v.length;
+      })
+      .entries(d);
+
+    console.log("hierarchy", data);
+
+
+    let hierarchy = d3.hierarchy(data[0], function(d) {
+      return d.values;
+    });
+
+    drawtreemap(hierarchy);
+
+    hierarchy.count()
+    hierarchy.sum(d => d.value);
+
+    hierarchy.sort(function(a, b) {
+      return b.height - a.height || b.count - a.count;
+    });
+
+    console.log(hierarchy)
+
+    let layout = d3.cluster().size([2 * Math.PI, (diameter / 2) - pad]);
+
+    layout(hierarchy);
+
+    hierarchy.each(function(node) {
+      node.theta = node.x;
+      node.radial = node.y;
+
+      let point = toCartesian(node.radial, node.theta);
+      node.x = point.x;
+      node.y = point.y;
+    });
+
+
+    let generator = d3.linkRadial()
+      .angle(d => d.theta + Math.PI / 2) 
+      .radius(d => d.radial);
+
+    color = d3.scaleSequential([hierarchy.height, 0], d3.interpolateCividis);
+
+  drawLinks(plot.append("g"), hierarchy.links(), generator);
+  drawNodes(plot.append("g"), hierarchy.descendants(), true);
+
+
+function drawtreemap(hierarchy){
+
+  let pad1 = 80;
+
+  let svg1 = d3.select("body").select("svg#tree")
+      .style("width", width)
+      .style("height", height);
+
+    let plot1 = svg1.append("g")
+      .attr("id", "plot")
+      .attr("transform", translate(20, 20)); 
+
+  hierarchy.sort(function(a, b) {
+      return b.height - a.height || b.count - a.count;
+    });
+
+
+    hierarchy.sum(d => d.value);
+
+    color = d3.scaleSequential([hierarchy.height, 0], d3.interpolateCividis);
+    console.log(hierarchy)
+
+    let layout = d3.treemap().padding(5).size([width - 1 * pad1, height - 1 * pad1]);
+
+    layout(hierarchy);
+
+    let rects = plot1.selectAll("rect")
+    .data(hierarchy.descendants())
+    .enter()
+    .append("rect")
+    .attr("x", function(d) {  return d.x0; })
+    .attr("y", function(d) { return d.y0; })
+    .attr("width", function(d) { return d.x1 - d.x0; })
+    .attr("height", function(d) { return d.y1 - d.y0; })
+    .attr("id", function(d) { return d.data.key; })
+    .attr("class", "node")
+    .style("fill", function(d) {return color(d.depth)});
+
+
+ setupEvents(plot1, rects, false);
+
+}
+
+function translate(x, y) {
+    return 'translate(' + String(x) + ',' + String(y) + ')';
+}
+
+function toCartesian(r, theta) {
+  return {
+    x: r * Math.cos(theta),
+    y: r * Math.sin(theta)
+  };
+}
+
+function drawLinks(g, links, generator) {
+  let paths = g.selectAll('path')
+    .data(links)
+    .enter()
+    .append('path')
+    .attr('d', generator)
+    .attr('class', 'link');
+}
+
+function drawNodes(g, nodes, raise) {
+  let circles = g.selectAll('circle')
+    .data(nodes, node => node.data.key)
+      .enter()
+      .append('circle')
+      .attr('r', 5)
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('id',function(d) {
+
+        if(d.data.key == ""){
+          d.data.key  = "Undef";
+        }
+
+        return d.data.key;
+      })
+      .attr('class', 'node')
+      .style('fill', d => color(d.depth))
+      .style('stroke', 'black')
+
+  
+  setupEvents(g, circles, raise);
+}
+
+function setupEvents(g, selection, raise) {
+
+
+  selection.on('mouseover.highlight', function(d) {
+    // https://github.com/d3/d3-hierarchy#node_path
+    // returns path from d3.select(this) node to selection.data()[0] root node
+
+    let path = d3.select(this).datum().path(selection.data()[0]);
+
+    console.log(path)
+
+    // select all of the nodes on the shortest path
+    let update = selection.data(path, node => node.x && node.y);
+
+    console.log(update);
+
+    // highlight the selected nodes
+    update.classed('selected', true);
+    
+    if (raise) {
+      update.raise();
+    }
+
+    selection.filter(function(item) {
+  return !path.includes(item);})
+        .transition()
+        .duration(500)
+        .attr("fill-opacity", "0.1")
+        .style("stroke", "")
+    
+
+
+  });
+  
+  selection.on('mouseout.highlight', function(d) {
+    let path = d3.select(this).datum().path(selection.data()[0]);
+    let update = selection.data(path, node => node.x && node.y);
+    update.classed('selected', false);
+
+    selection
+      .transition()
+      .attr("fill-opacity", "1")
+      .style('stroke', 'black');
+  });
+  
+
+  function showTooltip(g, node) {
+    let gbox = g.node().getBBox(); // get bounding box of group BEFORE adding text
+    let nbox = node.node().getBBox(); // get bounding box of node
+
+    // calculate shift amount
+    let dx = nbox.width / 2;
+    let dy = nbox.height / 2;
+
+    // retrieve node attributes (calculate middle point)
+    let x = nbox.x + dx;
+    let y = nbox.y + dy;
+
+    // get data for node
+    let datum = node.datum();
+
+    // remove "java.base." from the node name
+    let name = datum.data.key;
+
+    // use node name and total size as tooltip text
+    numberFormat = d3.format(".2~s");
+    let text = `${name} (${numberFormat(datum.value)} call)`;
+
+    // create tooltip
+    let tooltip = g.append('text')
+      .text(text)
+      .attr('x', x)
+      .attr('y', y)
+      .attr('dy', -dy - 4) // shift upward above circle
+      .attr('text-anchor', 'middle') // anchor in the middle
+      .attr('id', 'tooltip');
+
+    // get bounding box for the text
+    let tbox = tooltip.node().getBBox();
+
+    // if text will fall off left side, anchor at start
+    if (tbox.x < gbox.x) {
+      tooltip.attr('text-anchor', 'start');
+      tooltip.attr('dx', -dx); // nudge text over from center
+    }
+    // if text will fall off right side, anchor at end
+    else if ((tbox.x + tbox.width) > (gbox.x + gbox.width)) {
+      tooltip.attr('text-anchor', 'end');
+      tooltip.attr('dx', dx);
+    }
+
+    // if text will fall off top side, place below circle instead
+    if (tbox.y < gbox.y) {
+      tooltip.attr('dy', dy + tbox.height);
+    }
+  }
+
+
+  // show tooltip text on mouseover (hover)
+  selection.on('mouseover.tooltip', function(d) {
+    console.log(d);
+    showTooltip(g, d3.select(this));
+
+  })
+
+  // remove tooltip text on mouseout
+  selection.on('mouseout.tooltip', function(d) {
+    g.select("#tooltip").remove();
+  });
+  }
+
+
+
+ //legend
+  svg.append("circle")
+  .attr("cx", width - 200)
+  .attr("cy", height - 120)
+  .attr("r", 5)
+  .style("fill", color(3))
+  .style("stroke", "black")
+
+  svg.append("circle")
+  .attr("cx", width - 200)
+  .attr("cy", height - 140)
+  .attr("r", 5)
+  .style("fill",  color(2))
+  .style("stroke", "black")
+
+  svg.append("circle")
+  .attr("cx", width - 200)
+  .attr("cy", height - 160)
+  .attr("r", 5)
+  .style("fill",  color(1))
+  .style("stroke", "black")
+  
+  svg.append("circle")
+  .attr("cx", width - 200)
+  .attr("cy", height - 180)
+  .attr("r", 5)
+  .style("fill", color(0))
+  .style("stroke", "black")
+
+  //add text
+  svg.append("text")
+  .attr("class", "legend-text")
+  .attr("x", width - 180)
+  .attr("y", height - 120)
+  .text("Unit Type")
+  .attr("alignment-baseline", "middle")
+  svg
+  .append("text")
+  .attr("class", "legend-text")
+  .attr("x", width - 180)
+  .attr("y", height - 140)
+  .text("Call Type")
+  .attr("alignment-baseline", "middle")
+  svg
+  .append("text")
+  .attr("class", "legend-text")
+  .attr("x", width - 180)
+  .attr("y", height - 160)
+  .text("Call Type Group")
+  .attr("alignment-baseline", "middle")
+  svg
+  .append("text")
+  .attr("class", "legend-text")
+  .attr("x", width - 180)
+  .attr("y", height - 180)
+  .text("City")
+  .attr("alignment-baseline", "middle")
+}
+
+</script>
+
+<footer class="footer">
+  <div class="content has-text-centered is-size-7">
+    <p>
+      <a href="#top">
+        <span class="fas fa-arrow-up"></span>
+        <span class="has-text-weight-medium">Back to Top</span>
+      </a>
+    </p>
+
+    <p>
+      <!-- TODO: Change to link to your Github repository -->
+      <a href="https://github.com/usf-cs360-spring2020/homework4-Alegar917" class="button is-small" style="padding-left: 1em; padding-right: 1em;">
+        <i class="fab fa-github-alt"></i>&nbsp;<strong>Github</strong>
+      </a>
+
+      <a href="https://fontawesome.com/" class="button is-small" style="padding-left: 1em; padding-right: 1em;">
+        <i class="fab fa-font-awesome"></i>&nbsp;<strong>FontAwesome</strong>
+      </a>
+
+      <a href="https://bulma.io" class="button is-small">
+        <img src="https://bulma.io/images/made-with-bulma--semiblack.png" alt="Made with Bulma" width="128" height="24">
+      </a>
+    </p>
+  </div>
+</footer>
+</body>
+</html>
+        
